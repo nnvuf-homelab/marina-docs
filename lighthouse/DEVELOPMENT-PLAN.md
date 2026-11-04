@@ -631,6 +631,16 @@ detail in the [expansion plan](EXPANSION-PLAN.md):
 Knowledge graphs, autonomous crawling, write-capable MCP tools, and learning
 agents stay deferred until a concrete use case justifies them.
 
+### Next milestone: bounded research with draft approval
+
+**Status: in progress - manual-source backend slice implemented locally; not deployed.**
+
+The dedicated [research draft approval feature plan](RESEARCH-DRAFT-APPROVAL.md)
+defines the use case, staging and approval rules, workload ownership, proposed
+API, implementation sequence, and acceptance gates. Draft reports and staged
+sources remain excluded from ordinary answers until the exact version is
+approved and ready for citation.
+
 ## First implementation task
 
 Start with Milestone 1: a tested Lighthouse upload, list, status, and delete
