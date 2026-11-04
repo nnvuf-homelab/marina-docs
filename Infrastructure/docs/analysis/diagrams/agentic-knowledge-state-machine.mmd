@@ -1,0 +1,29 @@
+flowchart TD
+  Start(["Research request"]) --> Scope["Scope question and constraints"]
+  Scope --> Plan["Plan subquestions and queries"]
+  Plan --> Search["Search within budget"]
+  Search --> Select["Filter and rank candidates"]
+  Select --> Fetch["Fetch and persist artifacts"]
+  Fetch --> Extract["Extract, deduplicate, and chunk"]
+  Extract --> Index["Index metadata and vectors"]
+  Index --> Analyze["Analyze evidence and draft claims"]
+  Analyze --> Verify{"Claims supported?"}
+  Verify -->|No| Gap{"Budget remains?"}
+  Gap -->|Yes| Plan
+  Gap -->|No| Unsupported["Mark gaps and uncertainty"]
+  Verify -->|Yes| Action{"External action proposed?"}
+  Unsupported --> Action
+  Action -->|No| Respond["Persist and return cited response"]
+  Action -->|Yes| Approve{"Human approval"}
+  Approve -->|Approved| Execute["Execute exact approved action"]
+  Approve -->|Edited| Plan
+  Approve -->|Rejected or expired| Respond
+  Execute --> Audit["Persist outcome and audit event"]
+  Audit --> Respond
+  Respond --> End(["Complete"])
+
+  Scope -. cancel, timeout, or budget exhausted .-> Stop(["Stopped with reason"])
+  Plan -. cancel, timeout, or budget exhausted .-> Stop
+  Search -. cancel, timeout, or budget exhausted .-> Stop
+  Fetch -. cancel, timeout, or budget exhausted .-> Stop
+  Analyze -. cancel, timeout, or budget exhausted .-> Stop

@@ -1,0 +1,45 @@
+sequenceDiagram
+  actor User
+  participant UI as OpenWebUI
+  participant API as knowledge-api
+  participant DB as PostgreSQL
+  participant Agent as knowledge-worker
+  participant Search as SearXNG
+  participant Fetch as fetch-worker
+  participant Store as MinIO
+  participant Model as Ollama
+  participant Vector as Qdrant
+
+  User->>UI: Submit research brief and budget
+  UI->>API: Create research run
+  API->>DB: Persist run and policy
+  API-->>UI: Return run ID
+  Agent->>DB: Claim queued run
+  Agent->>Model: Plan bounded subquestions
+  Agent->>Search: Execute approved search queries
+  Search-->>Agent: Return candidate URLs
+
+  loop Selected sources within budget
+    Agent->>Fetch: Fetch policy-approved URL
+    Fetch->>Store: Save immutable source artifact
+    Fetch-->>Agent: Return metadata and content hash
+    Agent->>DB: Save source revision and passages
+    Agent->>Model: Classify and embed passages
+    Agent->>Vector: Upsert vectors with provenance IDs
+  end
+
+  Agent->>Vector: Retrieve and group relevant passages
+  Vector-->>Agent: Return citation candidates
+  Agent->>Model: Analyze, synthesize, and verify claims
+  Agent->>DB: Save report, claims, and citations
+
+  alt Consequential action proposed
+    Agent->>DB: Create approval request with argument hash
+    API-->>UI: Request user approval
+    User->>UI: Approve, edit, or reject
+    UI->>API: Record decision
+    API->>DB: Persist approval and audit event
+  end
+
+  API-->>UI: Stream cited answer and run status
+  UI-->>User: Present report and evidence

@@ -1,0 +1,17 @@
+C4Context
+  title System Context - MARINA
+
+  Person(user, "User", "Researches topics and works with the assistant")
+  System_Ext(mcp_clients, "MCP Clients", "VS Code and other authorized assistants")
+  System(knowledge, "MARINA", "Memory-Augmented Reasoning, Intelligence, Navigation, and Analysis")
+  System_Ext(identity, "Authentik", "Authenticates users and supplies identity claims")
+  System_Ext(internet, "Public Internet", "Search providers and source websites")
+  System_Ext(models, "Ollama", "Local inference and embedding models")
+
+  Rel(user, knowledge, "Uses", "HTTPS")
+  Rel(mcp_clients, knowledge, "Uses governed tools and resources", "MCP over HTTPS")
+  Rel(knowledge, identity, "Authenticates through", "OIDC")
+  Rel(knowledge, internet, "Discovers and retrieves sources", "HTTPS")
+  Rel(knowledge, models, "Runs inference and embeddings", "HTTP")
+
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

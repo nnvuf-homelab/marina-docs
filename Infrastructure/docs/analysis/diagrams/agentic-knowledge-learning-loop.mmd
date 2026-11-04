@@ -1,0 +1,29 @@
+flowchart LR
+  Signals["Reviewed signals<br/>feedback, corrections, eval failures"]
+
+  subgraph Learning["Knowledge Learning and Lifecycle"]
+    Validate["Validate and deduplicate"]
+    Decay["Recompute freshness and confidence"]
+    Dataset["Build versioned evaluation and training sets"]
+    Candidate["Tune ranking or train candidate adapter"]
+    Evaluate{"Candidate passes gates?"}
+    Approve{"Human approval"}
+
+    Validate --> Decay
+    Validate --> Dataset
+    Dataset --> Candidate --> Evaluate
+    Evaluate -->|Yes| Approve
+    Evaluate -->|No| Reject["Reject and retain evidence"]
+  end
+
+  Knowledge[("PostgreSQL and Qdrant<br/>scores, status, ranking features")]
+  Artifacts[("MinIO<br/>datasets, reports, adapters")]
+  Registry["Approved model or policy version"]
+
+  Signals --> Validate
+  Decay --> Knowledge
+  Dataset --> Artifacts
+  Candidate --> Artifacts
+  Approve -->|Approved| Registry
+  Approve -->|Rejected| Reject
+  Registry -->|Canary then rollback-capable promotion| Runtime["Agentic RAG and Ollama"]

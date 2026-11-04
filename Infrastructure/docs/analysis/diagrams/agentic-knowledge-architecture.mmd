@@ -1,0 +1,53 @@
+flowchart LR
+  User["User"] --> UI["OpenWebUI"]
+  User --> Visualizer["knowledge-visualizer"]
+  MCPClient["MCP client"] --> MCP["mcp-gateway"]
+  Auth["Authentik OIDC"] --> UI
+  Auth --> Visualizer
+  Auth --> MCP
+  UI --> API["knowledge-api"]
+
+  subgraph Apps["Shipyard and fleet applications"]
+    Visualizer --> API
+    MCP --> API
+    API --> RAG["agentic-rag"]
+    API --> Worker["knowledge-worker"]
+    API --> Learning["knowledge-learning"]
+    Worker --> Fetcher["fetch-worker"]
+  end
+
+  subgraph Existing["Existing AI platform"]
+    Ollama["Ollama"]
+    Qdrant["Qdrant"]
+  end
+
+  subgraph Shared["New shared infrastructure"]
+    Search["SearXNG"]
+    Postgres["PostgreSQL"]
+    MinIO["MinIO"]
+  end
+
+  Worker --> Search
+  Worker --> Ollama
+  Worker --> Qdrant
+  Worker --> Postgres
+  RAG --> Ollama
+  RAG --> Qdrant
+  RAG --> Postgres
+  Learning --> Ollama
+  Learning --> Qdrant
+  Learning --> Postgres
+  Learning --> MinIO
+  Fetcher --> Internet["Public internet"]
+  Fetcher --> MinIO
+  API --> Postgres
+  API --> Qdrant
+  API --> Ollama
+
+  API -. metrics and logs .-> Observability["Prometheus, Loki, Grafana"]
+  Visualizer -. metrics and logs .-> Observability
+  MCP -. metrics and logs .-> Observability
+  RAG -. metrics and logs .-> Observability
+  Learning -. metrics and logs .-> Observability
+  Worker -. metrics and logs .-> Observability
+  Fetcher -. metrics and logs .-> Observability

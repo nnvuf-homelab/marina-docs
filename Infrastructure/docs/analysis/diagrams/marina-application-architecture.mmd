@@ -1,0 +1,82 @@
+---
+title: MARINA - Application Architecture and Delivery
+---
+flowchart TB
+    User["User"]
+    Assistant["Assistant / MCP client"]
+
+    subgraph Access["Access - Infrastructure"]
+        Edge["Cloudflare Tunnel"]
+        Router["Traefik + Authentik"]
+        Edge --> Router
+    end
+
+    subgraph Apps["MARINA - Fleet-owned application releases"]
+        UI["Chartroom<br/>knowledge-visualizer<br/>Local-data UI scaffold"]
+        MCP["Harbormaster<br/>mcp-gateway<br/>Stdio tools + Lighthouse client"]
+        subgraph Core["Lighthouse - shared image and domain package"]
+            API["knowledge-api"]
+            RAG["agentic-rag"]
+            Worker["knowledge-worker"]
+            Learning["knowledge-learning"]
+        end
+        Fetch["Trawler<br/>fetch-worker<br/>URL-policy scaffold"]
+    end
+
+    subgraph Shared["Shared services - Infrastructure"]
+        Ollama["Ollama<br/>GPU / CPU / external Mac"]
+        Qdrant[("Qdrant<br/>Vector index")]
+        WebUI["OpenWebUI"]
+        Monitor["Prometheus / Grafana<br/>Loki / Promtail"]
+        SQL[("PostgreSQL<br/>Knowledge + workflow state")]
+        Objects[("MinIO<br/>Source documents + artifacts")]
+        Search["SearXNG<br/>Search discovery"]
+    end
+
+    Internet["Internet sources"]
+    User --> Edge
+    Router --> UI
+    Router --> API
+    Assistant -->|"local stdio"| MCP
+    MCP -->|"API client; URL wiring pending"| API
+    UI -.->|"planned authorized API integration"| API
+    API -.->|"questions + evidence"| RAG
+    API -.->|"research jobs + approvals"| Worker
+    Worker -.->|"refresh / evaluation"| Learning
+    Worker -.->|"discover sources"| Search
+    Worker -.->|"approved acquisition requests"| Fetch
+    Fetch -.->|"bounded HTTP / browser acquisition"| Internet
+    Fetch -.->|"source content + provenance"| Worker
+    RAG -.->|"inference + embeddings"| Ollama
+    RAG -.->|"retrieval"| Qdrant
+    Worker -.->|"index passages"| Qdrant
+    Worker -.->|"persist source artifacts"| Objects
+    API -.->|"knowledge + run state"| SQL
+    Learning -.->|"freshness + ranking updates"| SQL
+    Learning -.->|"reviewed retrieval updates"| Qdrant
+    WebUI --> Ollama
+    WebUI -.->|"planned MARINA assistant integration"| API
+    Apps -.->|"planned application metrics / traces"| Monitor
+
+    subgraph Delivery["Delivery and ownership"]
+        Repos["Application repositories<br/>lighthouse / trawler / chartroom / harbormaster"]
+        Shipyard["Shipyard<br/>Validate / build / advisory scans / sign"]
+        Registry[("GHCR<br/>Immutable images")]
+        Fleet["Fleet<br/>Reviewed charts + HelmReleases"]
+        Flux["Infrastructure Flux<br/>Fleet source + reconciliation"]
+        Secrets["setup-secrets.sh<br/>Local-only GHCR credentials<br/>Chart references still required"]
+        Repos --> Shipyard
+        Shipyard --> Registry
+        Shipyard -->|"promotion PR"| Fleet
+        Fleet --> Flux
+        Flux -->|"Helm releases"| Apps
+        Registry -->|"authenticated image pulls"| Apps
+        Secrets -.->|"namespace-local pull secrets"| Apps
+    end
+
+    Legend["Solid: configured structure / implemented interfaces<br/>Dashed: planned or incomplete integration<br/>Lighthouse roles currently expose scaffold health endpoints<br/>Admission does not establish workload readiness"]
+
+    classDef planned fill:#fff4d6,stroke:#a66b00,stroke-dasharray:5 5,color:#332200
+    classDef note fill:#eef2f6,stroke:#64748b,color:#172033
+    class SQL,Objects,Search planned
+    class Legend note

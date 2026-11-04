@@ -1,0 +1,38 @@
+sequenceDiagram
+  actor User
+  participant Client as MCP Client
+  participant MCP as MCP Gateway
+  participant API as Knowledge API
+  participant RAG as Agentic RAG
+  participant Vector as Qdrant
+  participant DB as PostgreSQL
+  participant Model as Ollama
+  participant Worker as Knowledge Worker
+
+  User->>Client: Ask a question
+  Client->>MCP: Call ask_knowledge
+  MCP->>API: Forward identity and validated arguments
+  API->>RAG: Start bounded answer graph
+  RAG->>Vector: Hybrid retrieval with filters
+  Vector-->>RAG: Candidate passages and provenance IDs
+  RAG->>DB: Resolve source revisions and citations
+  RAG->>Model: Grade evidence and draft answer
+
+  alt Evidence is sufficient
+    RAG->>Model: Verify claims and citations
+    RAG-->>API: Return cited answer
+    API-->>MCP: Return authorized result
+    MCP-->>Client: Tool result
+    Client-->>User: Present answer and sources
+  else Evidence is insufficient
+    RAG-->>API: Recommend bounded research
+    API-->>MCP: Return research proposal
+    MCP-->>Client: Request user confirmation
+    User->>Client: Confirm research
+    Client->>MCP: Call research_topic
+    MCP->>API: Start approved research run
+    API->>Worker: Enqueue durable workflow
+    Worker-->>API: Return run ID
+    API-->>MCP: Return run ID and status URI
+    MCP-->>Client: Tool result
+  end

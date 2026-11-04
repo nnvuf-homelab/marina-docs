@@ -1,0 +1,68 @@
+flowchart TB
+  User["User<br/>[Person]"]
+  MCPClient["MCP Client<br/>[External Software System]<br/>VS Code or another assistant"]
+  Identity["Authentik<br/>[External Software System]"]
+
+  subgraph Knowledge["MARINA [Software System]"]
+    direction TB
+    UI["Assistant UI<br/>[Container: OpenWebUI]<br/>Chat and research"]
+    Visualizer["Knowledge Visualizer<br/>[Container: React]<br/>Graphs, timelines, and evidence maps"]
+    API["Knowledge API<br/>[Container: FastAPI]<br/>HTTP API and approvals"]
+    MCP["MCP Gateway<br/>[Container: MCP Server]<br/>Governed tools and resources"]
+    RAG["Agentic RAG<br/>[Container: LangGraph]<br/>Retrieve, reason, verify, cite"]
+    Learning["Knowledge Learning<br/>[Container: Python Worker]<br/>Decay, evaluate, adapt, promote"]
+    Worker["Knowledge Worker<br/>[Container: LangGraph]<br/>Research workflows"]
+    Search["Search Service<br/>[Container: SearXNG]"]
+    Fetcher["Fetch Worker<br/>[Container: Playwright]"]
+    Postgres[("System of Record<br/>[Container: PostgreSQL]")]
+    Artifacts[("Artifact Store<br/>[Container: MinIO]")]
+    Vectors[("Retrieval Index<br/>[Container: Qdrant]")]
+
+    UI -->|JSON/HTTPS| API
+    Visualizer -->|Read-only visualization API| API
+    MCP -->|Uses governed API| API
+    API -->|Answers questions| RAG
+    API -->|Starts research| Worker
+    API -->|Records feedback| Learning
+    API -->|Stores run state| Postgres
+    RAG -->|Retrieves evidence| Vectors
+    RAG -->|Reads provenance| Postgres
+    Learning -->|Updates lifecycle scores| Postgres
+    Learning -->|Updates ranking payloads| Vectors
+    Learning -->|Stores datasets and adapters| Artifacts
+    Worker -->|Searches| Search
+    Worker -->|Requests acquisition| Fetcher
+    Worker -->|Checkpoints| Postgres
+    Worker -->|Indexes and retrieves| Vectors
+    Fetcher -->|Stores artifacts| Artifacts
+  end
+
+  Internet["Public Internet<br/>[External Software System]"]
+  Models["Ollama<br/>[External Software System]"]
+
+  User -->|HTTPS| UI
+  User -->|HTTPS| Visualizer
+  MCPClient -->|MCP over HTTPS| MCP
+  UI -->|OIDC| Identity
+  Visualizer -->|OIDC| Identity
+  MCP -->|OAuth 2.1 / OIDC| Identity
+  Search -->|HTTPS| Internet
+  Fetcher -->|HTTPS| Internet
+  RAG -->|Inference and embeddings| Models
+  Learning -->|Evaluates candidates| Models
+  Worker -->|HTTP| Models
+
+  User ~~~ MCPClient
+  MCPClient ~~~ Identity
+  Internet ~~~ Models
+
+  classDef person fill:#084c84,stroke:#073b66,color:#ffffff
+  classDef container fill:#438dd5,stroke:#2e6295,color:#ffffff
+  classDef external fill:#999999,stroke:#666666,color:#ffffff
+  classDef database fill:#438dd5,stroke:#2e6295,color:#ffffff
+
+  class User person
+  class UI,Visualizer,API,MCP,RAG,Learning,Worker,Search,Fetcher container
+  class Postgres,Artifacts,Vectors database
+  class MCPClient,Identity,Internet,Models external
+  style Knowledge fill:#ffffff,stroke:#777777,stroke-width:2px,stroke-dasharray:6 4,color:#222222

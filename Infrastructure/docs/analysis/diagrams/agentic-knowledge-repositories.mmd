@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph Source["Application source repositories"]
+    Core["lighthouse<br/>API, Agentic RAG,<br/>research worker, learning worker"]
+    Fetcher["trawler<br/>isolated HTTP and browser acquisition"]
+    Visualizer["chartroom<br/>React exploration UI"]
+    MCP["harbormaster<br/>MCP protocol adapter"]
+  end
+
+  Delivery["Shipyard<br/>contract validation, CI, image publication"]
+  Registry[("GHCR<br/>immutable images")]
+  Fleet["fleet<br/>application deployment manifests"]
+  Infrastructure["Infrastructure<br/>shared platform and Flux admission"]
+  Cluster["K3s cluster"]
+
+  Core --> Delivery
+  Fetcher --> Delivery
+  Visualizer --> Delivery
+  MCP --> Delivery
+  Delivery --> Registry
+  Delivery --> Fleet
+  Fleet -->|reconciled by Flux| Cluster
+  Infrastructure -->|platform services and Flux configuration| Cluster
