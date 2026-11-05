@@ -1,6 +1,7 @@
 # Bounded Research with Draft Approval
 
-**Status: in progress - manual-source vertical slice implemented locally; not deployed.**
+**Status: in progress - manual-source backend and Chartroom review UI implemented;
+live/runtime acceptance remains a separate gate.**
 
 This feature extends the [Lighthouse development plan](DEVELOPMENT-PLAN.md).
 
@@ -189,8 +190,9 @@ The local Lighthouse implementation now includes the first manual-source slice:
 This is not yet autonomous discovery or a complete release. The summary uses
 the configured structured answer model and constrains citations to supplied
 chunks, but does not independently verify every generated claim; human review
-is mandatory. Research has no Chartroom UI, search-provider discovery,
-replacement-version workflow, or production runtime wiring. Those remain
+is mandatory. Chartroom now implements the manual-source review workflow
+described below. Search-provider discovery, replacement-version workflow, and
+production runtime wiring/acceptance remain
 separate implementation and acceptance gates.
 
 ### Local validation (2026-11-05)
@@ -206,3 +208,36 @@ separate implementation and acceptance gates.
 - Source distribution and wheel builds passed; the API contract was regenerated.
 - No production mutation or rollout was performed. Live Trawler/model acceptance
   and a real research-aware backup/restore round-trip remain outstanding.
+
+### Chartroom review UI (2026-11-05)
+
+- Implemented explicit manual topic/source input (1–3 distinct public HTTPS
+  URLs), selected destination collection, in-memory stable submission
+  idempotency, durable run-ID URL/manual resume, queued/running progress,
+  cancellation, exhausted-run retry, and asynchronous publication polling.
+- Saved reports expose exact version/hash, model, uncertainty, source
+  provenance and exact evidence chunks. All untrusted content is plain text;
+  unsafe links are disabled. Approve/reject/withdraw name the displayed immutable
+  version/hash and require an explicit review confirmation. Conflicts refresh
+  state and require fresh review; they never automatically approve.
+- Confirmed readiness/withdrawal refreshes documents and clears stale
+  answers/passages. Existing authentication expiration, collection-switch
+  abort/stale guards, ordinary documents and source-first questions are
+  preserved. Generated-report citations expose primary-evidence lineage.
+- Only an opaque run ID is retained in the URL; opening it after reload is
+  explicit and owner/destination checked. No credentials/topics/evidence are
+  stored in browser storage. Submission keys are memory-only: if no run ID was
+  received, retry before reloading to preserve duplicate protection.
+- Regenerated Chartroom API types from Lighthouse OpenAPI. Since research
+  response schemas remain untyped, added validated typed response parsers.
+- Local Chartroom checks: `npm test` **106 passed**; `npm run lint` and
+  `npm run build` passed. `npm run test:research` **2 passed**, using isolated
+  deterministic Playwright API fixtures covering submission/reload/review,
+  publication, withdrawal, conflict refresh and rejection. Unit/API/UI tests
+  additionally cover malformed responses, unsupported reports, errors/auth,
+  retry/cancel, idempotency, safe rendering and abort/stale behavior.
+- No dependencies were installed and no commits, pushes, automatic discovery,
+  cluster changes or live backend acceptance were performed. Existing
+  authenticated/live suites require separately supplied runtime credentials.
+  Live acquisition/model, production proxy, backup/restore and rollout
+  readiness are not established by these fixtures.

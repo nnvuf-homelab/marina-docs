@@ -18,6 +18,44 @@ revoked when the source/workspace closes; credentials never appear in the link.
 PDF viewing/page fragments depend on the browser's PDF viewer. Deploy the
 PDF-capable Lighthouse backend and migration before this UI.
 
+## Manual-source research drafts
+
+**Research drafts** accepts a topic and 1–3 distinct public HTTPS source URLs
+for the selected destination collection. Discovery is manual, not an automatic
+search mode or an extension of ordinary source-first questions. Lighthouse must
+have its acquisition/model services configured separately.
+
+The review panel follows durable runs, supports cancel/exhausted-run retry, and
+displays the saved immutable report version/hash, uncertainty, model identity,
+source provenance and exact evidence chunks. Untrusted report/source text is
+plain text and unsafe URL links are disabled. An explicit review confirmation
+is required for exact-version/hash approval, rejection or withdrawal. A 409
+refreshes saved state and requires fresh review; no automatic approval occurs.
+Publishing is polled until confirmed ready, when the document library refreshes.
+Withdrawal also refreshes documents and clears displayed answers/passages.
+Publishing versions allow explicit same-version publication retries.
+
+Only the opaque run ID is retained in `?research=<id>`; browser storage is never
+used. After reload, reconnect, choose its destination collection and explicitly
+**Open run**. Lighthouse authorizes ownership and the UI checks destination.
+Clear/disconnect/401 removes private UI state and the URL ID. Identical
+submission retries retain one in-memory idempotency key; a reload before the
+first run ID arrives loses that key, so retry an uncertain submission before
+reloading. Queued/running and publishing polling pauses after an error or 60
+three-second checks; explicit refresh resumes it. Collection switches/unmounts
+abort requests and ignore stale responses.
+
+Generated-report answer citations show report identity/version and supporting
+primary chunk IDs when the backend supplies them. A report remains generated
+content, not independent corroboration of its own evidence.
+
+Run `npm run test:research` for deterministic Playwright draft-approval fixtures
+(its own local Vite server, intercepted API, no live token). Unit tests, lint
+and build use `npm test`, `npm run lint`, `npm run build`. Generated request
+types come from `npm run generate:api`; untyped backend research responses are
+runtime-validated. These local checks do not establish production runtime
+configuration or live Trawler/model/backup acceptance.
+
 ## Development
 
 ```sh
