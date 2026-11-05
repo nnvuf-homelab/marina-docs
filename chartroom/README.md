@@ -18,6 +18,23 @@ revoked when the source/workspace closes; credentials never appear in the link.
 PDF viewing/page fragments depend on the browser's PDF viewer. Deploy the
 PDF-capable Lighthouse backend and migration before this UI.
 
+## Workspace destinations
+
+- **Conversations** is for private, source-first questions and saved chat history.
+- **Research** is for knowledge-building threads, approved public connector
+  queries, evidence review, and reviewed knowledge updates. Manual-source runs
+  remain available under **Advanced: manual-source research run**.
+- **Library** is for uploaded and published collection documents, source search,
+  and temporary one-off questions that are not saved to conversation history.
+- **Activity** and **Settings** provide job recovery and connector/workspace
+  configuration.
+
+All destinations use the selected collection. Research and Conversations lists
+are filtered by mode on the server before pagination, keeping their totals and
+page boundaries accurate as saved history grows. Knowledge-building chat in
+Research requires the conversation and learning capabilities to be enabled by
+Lighthouse; Advanced manual-source runs remain a separate workflow.
+
 ## Development
 
 ```sh
